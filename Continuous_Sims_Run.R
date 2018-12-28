@@ -16,7 +16,7 @@ for(forInd in lowBd:upBd) {
   trueB0 <- 0.1; trueB1 <- 0.5; trueB2 <- 0.4; trueSig <- 0.75
   trueA <- 0.4; trueC <- 0.3*trueA
   #Store y prevalence
-  prev <- inv.logit(trueT0 + trueT1*trueA + trueT2*(trueB0 + trueB1*trueA + trueB2*(trueC)) + trueT4*(trueC)) 
+  prevVec <- rep(NA,1000) 
   #Approximation method to get truth
   approxIE <- exp(  logit(integrate(ie1Function,-Inf, Inf,t0=trueT0,t1=trueT1,t2=trueT2,
                                     t4=trueT4,c=trueC,sigma=trueSig,b0=trueB0,b1=trueB1,b2=trueB2)$value) -
@@ -32,6 +32,7 @@ for(forInd in lowBd:upBd) {
     m <- rnorm(n, trueB0 + trueB1*a + trueB2*con, trueSig); 
     y <- rbinom(n, 1, inv.logit(trueT0 + trueT1*a + trueT2*m  + trueT4*con))  #Mediator, Outcome
     cCon<- median(con)
+    prevVec[i] <- mean(y)
     #Fit regression models
     logitModel <- glm(y ~ a + m  + con, na.action=na.omit, family=binomial(link="logit"))
     probitModel <- glm(y ~ a + m  + con, na.action=na.omit, family=binomial(link="probit"))
@@ -78,6 +79,7 @@ for(forInd in lowBd:upBd) {
     simMatrix[i,12] <- as.numeric((quantile(DEBoot,0.025, na.rm = TRUE) <= approxDE ) & (quantile(DEBoot,0.975, na.rm = TRUE) >= approxDE ))
     
   }
+  prev <- mean(prevVec)
   out <- rbind( out, c(prev, approxIE, approxDE, sd(simMatrix[,1], na.rm = TRUE), sd(simMatrix[,2], na.rm = TRUE),
                        colMeans(simMatrix[,c(1:12)], na.rm = TRUE)) )
 }
