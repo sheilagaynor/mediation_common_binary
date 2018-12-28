@@ -13,11 +13,12 @@ for(forInd in lowBd:upBd) {
   const <-  seq(-2.75,1,0.005)[forInd]
   simMatrix <- matrix(NA, nrow=1000, ncol=8)
   #Store y prevalence
-  prev <- inv.logit(const + 0.4*0.4 + .5*inv.logit(0.1 + 0.5*0.4 + 0.4*0.3*0.4) + 0.25*(0.3*0.4)) 
+  prevVec <- rep(NA,1000)
   for (i in 1:1000){ 
     #Simulate Data
     a <- rnorm(n, 0.4, 0.75);  con <- rnorm(n,0.3*a, 0.75) #Exposure, Covariate
     m <- rbinom(n, 1, inv.logit(0.1 + 0.5*a + 0.4*con)); y <- rbinom(n, 1, inv.logit(const + .4*a + .5*m  + .25*con))  #Mediator, Outcome
+    prevVec[i] <- mean(y)
     cCon<- median(con)
     #Fit regression models
     logitYModel <- glm(y ~ a + m + con, na.action=na.omit, family=binomial(link="logit"))
@@ -55,6 +56,7 @@ for(forInd in lowBd:upBd) {
     simMatrix[i,5]   <- sd(IEBoot, na.rm = TRUE);     simMatrix[i,6]  <- sd(DEBoot, na.rm = TRUE)
     simMatrix[i,7]   <- mad(IEBoot, na.rm = TRUE);    simMatrix[i,8]  <- mad(DEBoot, na.rm = TRUE)
   }
+  prev <- mean(prevVec)
   out <- rbind( out, c(prev, sd(simMatrix[,1], na.rm = TRUE), sd(simMatrix[,2], na.rm = TRUE),
                        colMeans(simMatrix[,c(1:8)], na.rm = TRUE)) )
 }
